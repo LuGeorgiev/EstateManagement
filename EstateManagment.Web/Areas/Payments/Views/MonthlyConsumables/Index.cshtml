@@ -1,0 +1,164 @@
+﻿@model IEnumerable<MonthlyConsumablesListingModel>
+@{
+    ViewData["Title"] = "Месечни плащания на консумативи";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<section id="loadingBox" class="notification">Зареждане ...</section>
+
+<section id="infoBox" class="notification">Информация</section>
+
+@if (Model.Any())
+{
+    <table class="table table-condensed table-striped table-hover">
+        <thead class="info">
+            <tr>
+                <th scope="col" class="col-md-1">Краен срок</th>
+                <th scope="col" class="col-md-1">Клиент</th>
+                <th scope="col" class="col-md-1">Дължима сума</th>
+                <th scope="col" class="col-md-2">Имоти и Детайли</th>
+                <th scope="col" class="col-md-2">Номер на фактура</th>
+                <th scope="col" class="col-md-4">Извършванен на плащане</th>
+                <th scope="col" class="col-md-1"></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var monthlyConsumable in Model)
+            {
+                string rowColor;
+                if (monthlyConsumable.DeadLine <= DateTime.UtcNow)
+                {
+                    rowColor = "danger";
+                }
+                else
+                {
+                    rowColor = "";
+                }
+                <tr class="@rowColor">
+                    <td>@monthlyConsumable.DeadLine.DateBgFormat()</td>
+                    <td>
+                        <a asp-area="" asp-controller="Clients" asp-action="DetailsByName" asp-route-name="@monthlyConsumable.Client"><strong>@monthlyConsumable.Client</strong></a>
+                    </td>
+                    <td>@monthlyConsumable.TotalConsumablesMonthlyPrice.ThousandsSeparate()</td>
+                    <td>
+                        <a asp-area="" asp-controller="Rents" asp-action="Details" asp-route-id="@monthlyConsumable.RentAgreementId">
+                            @(monthlyConsumable.Properties.Any() ? string.Join(", ", monthlyConsumable.Properties) : "Само паркоместа")
+                        </a>
+                    </td>
+                    <td>
+                        @if (User.IsInRole("Manager"))
+                        {
+                            <div>
+                                <div class="col-md-9">
+                                    <input value="@(monthlyConsumable.InvoiceNumber == null ? "00000" : monthlyConsumable.InvoiceNumber.ToString())"
+                                           type="text" style="width:90px" class="form-control input-invoice" />
+                                </div>
+                                <button id="@monthlyConsumable.Id" class="btn btn-success btn-invoice edit-rent-btn">
+                                    <i class="fas fa-check"></i>
+                                </button>
+
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-left">
+                                <strong>
+                                    @(monthlyConsumable.InvoiceNumber == null ?
+                                                                "Нямаvoi номер" :
+                                                                "№ " + monthlyConsumable.InvoiceNumber.ToString())
+
+                                </strong>
+                            </div>
+                        }
+                    </td>
+                    <td>
+                        <form asp-area="Payments" asp-controller="Payments" asp-action="PayConsumables" method="post" class="form-inline">
+                            <div asp-validation-summary="All" class="text-danger"></div>
+                            <div class="form-group">
+                                <label asp-for="@monthlyConsumable.PaidOn">Дата:</label>
+                                <input asp-for="@monthlyConsumable.PaidOn" name="paidOn" class="form-control" />
+                            </div>
+                            <div class="form-group ">
+                                <label asp-for="@monthlyConsumable.IsCash"></label>
+                                <input asp-for="@monthlyConsumable.IsCash" name="isCash" />
+                            </div>
+                            <input type="hidden" name="id" value="@monthlyConsumable.Id" />
+                            @*<input type="submit" value="Платено" class="btn btn-success" />*@
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                    </td>
+                    @if (User.IsInRole("Manager"))
+                    {
+                        <td>
+                            <a asp-controller="MonthlyConsumables" asp-action="Edit" asp-route-id="@monthlyConsumable.Id" class="btn btn-primary edit-rent-btn">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <a asp-controller="MonthlyConsumables" asp-action="Terminate" asp-route-id="@monthlyConsumable.Id" class="btn btn-danger edit-rent-btn">
+                                <i class="far fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <hr class="col-xs-12">
+    <h4>Няма чакащи плащания на консумативи</h4>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+
+        $('.btn-invoice').on('click', function () {
+            const id = $(this).attr('id');
+            let invoiceNumber = $(this).prev().find('input').val();
+
+            if (isInt(invoiceNumber)) {
+                invoiceNumber = parseInt(invoiceNumber, 10);
+                $.ajax({
+                    //TODO change to post
+                    method: "Get",
+                    url: "/Payments/MonthlyConsumables/SetInvoiceNumber",
+                    data: {
+                        id: id,
+                        invoiceNumber: invoiceNumber
+                    }
+                })
+                    .then(showInfo(`Успешно въведена фактура номер: ${invoiceNumber}`))
+                    .catch((err) => console.log(err));
+
+            } else {
+                handleError();
+            }
+        });
+
+        function handleError() {1
+            alert("Деси въведи цяло число!")
+        }
+
+        function isInt(value) {
+            var x = parseFloat(value);
+            return !isNaN(value) && (x | 0) === x;
+        }
+
+        $(document).on({
+            ajaxStart: () => $("#loadingBox").show(),
+            ajaxStop: () => $('#loadingBox').fadeOut()
+        });
+
+        function showInfo(message) {
+            let infoBox = $('#infoBox');
+            infoBox.text(message);
+            infoBox.show();
+            setTimeout(() => infoBox.fadeOut(), 3000);
+        }
+
+    </script>
+}

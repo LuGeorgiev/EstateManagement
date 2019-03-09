@@ -1,0 +1,67 @@
+﻿@model RentDetailsModel
+<hr class="col-xs-12">
+<div>
+    <h3>Клиент:<span> <a asp-controller="Clients" asp-action="DetailsByName" asp-route-name="@Model.Client">@Model.Client</a> </span> </h3>
+</div>
+<div class="row ">
+    <div class="col-lg-5 col-md-5 col-lg-offset-1">
+        <h4>имоти:</h4>
+        <ul class="list-unstyled ">
+            @foreach (var property in Model.Properties)
+            {
+                <li>
+                    Имот: <strong>@property.Name</strong> с площ: <strong>@property.Area</strong> кв.м
+                </li>
+            }
+        </ul>
+        <h4>Месечен наем без ДДС: @Model.MonthlyPrice.ThousandsSeparate() лв</h4>
+    </div>
+    <div class="col-lg-5 col-md-5 ">
+
+        <h4>Пaркоместа:</h4>       
+
+        @if (Model.ParkingSlots.Count() > 0)
+        {
+            <ul class="list-unstyled">
+                @foreach (var slot in Model.ParkingSlots)
+                {
+                    <li>
+                        Тип : <strong>@slot.Type.GetDescription()</strong>, брой: <strong>@slot.Quantity</strong>, цена:<strong> @slot.Price.ThousandsSeparate()</strong>, място: <strong>@slot.Area.GetDescription()</strong>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <h4>Няма наети паркоместа</h4>
+        }
+    </div>
+    
+</div>
+<hr class="col-xs-12">
+<div class="row">
+    <div class="col-lg-5 col-md-5 col-lg-offset-1" ">
+        <h4>Начална дата:</h4>
+        <p><strong>@Model.StartDate.DateBgFormat()</strong></p>
+
+    </div>
+    <div class="col-lg-5 col-md-5">
+        @if (Model.EndDate != null)
+        {
+            <h4>Крайна дата:</h4>
+            <p>@Model.EndDate.Value.DateBgFormat()</p>
+        }
+        else
+        {
+            <h4>Няма посочена крайна дата на договора</h4>
+        }
+
+    </div>
+</div>
+<hr />
+
+<div class="col-lg-8 col-md-8 bg-info col-lg-offset-1" ">
+    <h4>Обща месечна сума без ДДС: <strong>@Model.TotalMonthlyPrice.ThousandsSeparate()</strong> лв.</h4>
+    <h4>Обща месечна сума c ДДС: <strong>@((1.2m * Model.TotalMonthlyPrice).ThousandsSeparate())</strong> лв.</h4>
+</div>
+

@@ -1,0 +1,19 @@
+﻿@model UserInfoModel
+@{
+    ViewData["Title"] = "Confirm Administrator promotion";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<h3>Please, note that Administrator promotion is <strong class="bg-danger img-rounded">irreversible!</strong></h3>
+
+<partial name="_UserInfoView"/>
+
+<div class="row">
+    <div class="col-lg-3">
+        <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="btn btn-success">Refuse Admin Promotion</a>
+    </div> 
+    <div class="col-lg-2">
+        <a asp-area="Admin" asp-controller="Users" asp-action="ConfirmAdmin" asp-route-id="@Model.Id" class="btn btn-danger">Confirm Admin Promotion</a>
+    </div>
+</div>

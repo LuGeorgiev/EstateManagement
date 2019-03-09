@@ -1,0 +1,106 @@
+﻿@model FilterRentsViewModel
+@{
+    ViewData["Title"] = "Резултат от филтрирането на недвижимите имоти и паркоместата";
+}
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h2 class="panel-title">@ViewData["Title"]</h2>
+    </div>
+    <div class="panel-body">
+        <div class="col-md-2">
+
+            <div>
+                От:<strong> @Model.StartDate.DateBgFormat()</strong>
+            </div>
+            <div>
+                До:<strong> @Model.EndDate.DateBgFormat()</strong>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div>
+                <div class="col-md-8 text-right">
+                    Общо приходи с ДДС:
+                </div>
+                <div class="col-md-4 text-left">
+                    <strong>@Model.TotalIncome.ThousandsSeparate()</strong>
+                </div>
+            </div>
+            <div>
+                <div class="col-md-8 text-right">
+                    Сума без ДДС:
+                </div>
+                <div class="col-md-4 text-left">
+                    <strong>@((Model.TotalIncome - Model.VAT).ThousandsSeparate())</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div>
+                <div class="col-md-8 text-right">
+                    Сума в брой:
+                </div>
+                <div class="col-md-4 text-left">
+                    <strong>@Model.PaidInCash.ThousandsSeparate()</strong>
+                </div>
+            </div>
+            <div>
+                <div class="col-md-8 text-right">
+                    ДДС:
+                </div>
+                <div class="col-md-4 text-left">
+                    <strong>@Model.VAT.ThousandsSeparate()</strong>
+                </div>
+
+            </div>
+        </div>
+        <div class="pull-right">
+            <a href="javascript:window.history.back()" class="btn btn-default pull-right">Назад</a>
+        </div>
+    </div>
+    @if (Model.Payments != null && Model.Payments.Count() > 0)
+    {
+        <div class="row">
+            <div class="col-md-12 col-lg-12">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Сума</th>
+                            <th scope="col">Платена на</th>
+                            <th scope="col">Краен срок</th>
+                            <th scope="col">Пълна сума</th>
+                            <th scope="col">Начин</th>
+                            <th scope="col">Отразено от</th>
+                            <th scope="col">Клент</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var payment in Model.Payments)
+                        {
+                            <tr>
+                                <td class="@(payment.Amount!=payment.TotalPayment?"text-danger":"")">@payment.Amount.ThousandsSeparate()</td>
+                                <td>@payment.PaidOn.DateBgFormat()</td>
+                                <td>@payment.DeadLine.DateBgFormat()</td>
+                                <td>@payment.TotalPayment.ThousandsSeparate()</td>
+                                <td>@(payment.CashPayment == true ? "В брой" : "Банка")</td>
+                                <td>@payment.Username</td>
+                                <td>
+                                    <a asp-area="" asp-controller="Clients" asp-action="DetailsByName" asp-route-name="@payment.Client">@payment.Client</a>
+                                </td>
+                                <td class="pull-right">
+                                    <a asp-area="" asp-controller="Rents" asp-action="Details" asp-route-id="@payment.RentAgreementId" class="btn btn-default">Договор Детайли</a>
+                                </td>
+
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <h3>Няма записи за плащания на наем в зададения филтър</h3>
+    }
+</div>

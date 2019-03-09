@@ -1,0 +1,61 @@
+﻿@model RentDetailsModel
+@{
+    ViewData["Title"] = "Детайли на договора";
+}
+
+<div class="container-fluid">
+    @if (User.IsInRole("Manager"))
+    {
+        <form method="post" asp-action="UploadContract" asp-route-id="@Model.Id" enctype="multipart/form-data">
+            <div class="form-group">
+                <div class="col-md-12">
+                    <p>Качване на договор в .zip формат под 2 MB размер:</p>
+                    <input type="file" name="contract" multiple accept=".zip" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-12">
+                    <input type="submit" value="Upload" />
+                </div>
+            </div>
+        </form>
+    }
+    <hr class="col-xs-12">
+
+    <div class="row">
+        <div class="col-md-8">
+            <h2>@ViewData["Title"] </h2>
+        </div>
+        <div class="pull-right col-md-4">
+            <a href="javascript:window.history.back()" class="btn btn-default">Назад</a>
+        </div>
+    </div>
+
+    <partial name="_RentDescription" />
+
+    <hr class="col-xs-12">
+    <div class="row">
+        <div class="col-lg-4 col-md-4 col-lg-offset-1" ">
+            <h4>Описание на договора</h4>
+            <p>@Model.Description</p>
+        </div>
+        <div class="col-lg-4 col-md-4">
+            <h4>Описание на паркоместата</h4>
+            <p>@Model.ParkingSlotDescription</p>
+        </div>
+    </div>   
+  
+    <hr class="col-xs-12">
+    @if (User.IsInRole("Manager"))
+    {
+        <h2>Сканирани договори:</h2>
+        <div>
+            @await Component.InvokeAsync("ContractsList", new { rentId = Model.Id })
+        </div>
+    }
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
